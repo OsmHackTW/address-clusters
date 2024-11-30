@@ -1,0 +1,22 @@
+services:
+  worker:
+    build: .
+    volumes:
+      - ./source:/source:r
+    depends_on:
+      - postgis
+  postgis:
+    image: postgis/postgis:17-3.5
+    volumes:
+      - db:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_USER: addr
+      POSTGRES_PASSWORD: addr
+      POSTGRES_DB: addr
+    command: >
+      -c shared_buffers=512MB
+      -c work_mem=20MB
+      -c maintenance_work_mem=512MB
+      -c autovacuum_work_mem=128MB      
+volumes:
+  db:
