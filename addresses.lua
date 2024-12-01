@@ -8,6 +8,10 @@ local addresses = osm2pgsql.define_node_table('addresses', {
 )
 
 function osm2pgsql.process_node(object)
+    if not (object.tags['addr:city'] and
+            (object.tags['addr:TW:dataset'] or object.tags['source:url'])) then
+        return
+    end
     local a = {
         city = object.tags['addr:city'],
         street = object.tags['addr:street'],

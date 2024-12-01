@@ -6,10 +6,5 @@ if [ ! -f "/source/taiwan-latest.osm.pbf" ]; then
   exit 1
 fi
 
-echo "Call Osmisum to filter tags..."
-osmium tags-filter -o addresses.osm.pbf \
-       /source/taiwan-latest.osm.pbf \
-       n/addr:*
-
 echo "Running osm2pgsql..."
-osm2pgsql -d postgresql://addr:addr@postgis:5432/addr -O flex -S addresses.lua addresses.osm.pbf
+osm2pgsql -d postgresql://addr:addr@postgis:5432/addr -O flex -S addresses.lua /source/taiwan-latest.osm.pbf
