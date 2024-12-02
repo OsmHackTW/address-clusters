@@ -5,5 +5,5 @@ RUN apt-get update && apt-get upgrade -y && \
     rm -rf /var/lib/apt/lists
 RUN mkdir /work
 WORKDIR /work
-ADD import.sh addresses.lua /work/
-RUN chmod 755 import.sh
+ADD . /work/
+RUN chmod 755 go.sh

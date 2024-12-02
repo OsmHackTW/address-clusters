@@ -1,10 +1,13 @@
 services:
-  worker:
-    build: .
+  importer:
+    build: importer/
     volumes:
       - ./source:/source:r
     depends_on:
       - postgis
+    profiles:
+      - tools
+    command: /work/go.sh
   postgis:
     image: postgis/postgis:17-3.5
     volumes:
@@ -17,6 +20,8 @@ services:
       -c shared_buffers=512MB
       -c work_mem=20MB
       -c maintenance_work_mem=512MB
-      -c autovacuum_work_mem=128MB      
+      -c autovacuum_work_mem=128MB
+    profiles:
+      - tools
 volumes:
   db:
