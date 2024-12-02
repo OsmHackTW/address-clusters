@@ -6,10 +6,13 @@ if [ ! -f "/source/taiwan-latest.osm.pbf" ]; then
   exit 1
 fi
 
-until psql postgresql://addr:addr@postgis:5432/addr -c "select 1" > /dev/null 2>&1; do
+until psql $POSTGRES_URL -c "select 1" > /dev/null 2>&1; do
   echo "Wait until Postgres is ready..."
   sleep 5
 done
 
 echo "Running osm2pgsql..."
-osm2pgsql -d postgresql://addr:addr@postgis:5432/addr -O flex -S addresses.lua /source/taiwan-latest.osm.pbf
+osm2pgsql -d $POSTGRES_URL -O flex -S addresses.lua /source/taiwan-latest.osm.pbf
+
+echo "Generating Clusters..."
+psql $POSTGRES_URL -f cluster.sql
