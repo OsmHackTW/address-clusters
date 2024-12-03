@@ -19,4 +19,4 @@ docker compose run converter
 As of December 2024, the `importer` took about 100 seconds and `converter` took about 1 minute
 in my i7-12700K machine running WSL 2.
 The `addresses` table will have 9,067,781 entries, generating 182,953 address clusters;
-the PMTiles generated is sized 61MB.
+the PMTiles generated is sized 31MB.
