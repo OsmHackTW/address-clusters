@@ -1,7 +1,7 @@
 This is a work in progress.
 
-Currently address importing, clustering and PMTiles generation are done,
-adding Tileserver GL for rendering for map editors is work in progress.
+Currently address importing, clustering, PMTiles generation and
+raster tile rendering with Tileserver GL (for map editors like JOSM) are done.
 
 ### Produce PMTiles
 
@@ -21,3 +21,21 @@ As of October 2026 (`taiwan-261022.osm.pbf`), the `importer` took about 140 seco
 in my Ryzen 5 5600G machine running WSL 2.
 The `addresses` table will have 9,711,502 entries, generating 202,861 address clusters;
 the PMTiles generated is sized 38MB.
+
+### Serve raster tiles
+
+After `source/cluster.pmtiles` is generated, start Tileserver GL:
+```sh
+docker compose up -d tileserver
+```
+
+It renders raster tiles on demand at `http://localhost:8886/`.
+Traditional Chinese glyphs are built from Noto Sans CJK TC when building the image.
+
+To use it in JOSM, add a TMS imagery layer with this URL:
+```
+tms[11,19]:http://localhost:8886/styles/address-clusters/{zoom}/{x}/{y}.png
+```
+
+Tileserver GL renders 256px tiles with the map one zoom level lower,
+so z11 is the lowest zoom with content.

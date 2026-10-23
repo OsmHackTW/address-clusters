@@ -24,6 +24,12 @@ services:
     environment:
       POSTGRES_URL: postgresql://addr:addr@postgis:5432/addr
     command: /work/convert.sh
+  tileserver:
+    build: tileserver/
+    volumes:
+      - ./source:/source:ro
+    ports:
+      - 127.0.0.1:8886:8080
   postgis:
     image: postgis/postgis:18-3.6
     volumes:

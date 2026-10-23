@@ -1,0 +1,20 @@
+{
+  "options": {
+    "paths": {
+      "root": "/tileserver",
+      "fonts": "fonts",
+      "styles": "styles",
+      "pmtiles": "/source"
+    }
+  },
+  "styles": {
+    "address-clusters": {
+      "style": "address-clusters.json"
+    }
+  },
+  "data": {
+    "cluster": {
+      "pmtiles": "cluster.pmtiles"
+    }
+  }
+}

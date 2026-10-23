@@ -1,0 +1,67 @@
+{
+  "version": 8,
+  "name": "Address Clusters",
+  "sources": {
+    "cluster": {
+      "type": "vector",
+      "url": "pmtiles://{cluster}"
+    }
+  },
+  "glyphs": "{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "cluster-fill",
+      "type": "fill",
+      "source": "cluster",
+      "source-layer": "address_clusters",
+      "filter": ["==", ["geometry-type"], "Polygon"],
+      "paint": {
+        "fill-color": "#ff00aa",
+        "fill-opacity": 0.12
+      }
+    },
+    {
+      "id": "cluster-outline",
+      "type": "line",
+      "source": "cluster",
+      "source-layer": "address_clusters",
+      "filter": ["in", ["geometry-type"], ["literal", ["Polygon", "LineString"]]],
+      "paint": {
+        "line-color": "#ff00aa",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 14, 1, 19, 2.5]
+      }
+    },
+    {
+      "id": "cluster-point",
+      "type": "circle",
+      "source": "cluster",
+      "source-layer": "address_clusters",
+      "filter": ["==", ["geometry-type"], "Point"],
+      "paint": {
+        "circle-color": "#ff00aa",
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 14, 2, 19, 5]
+      }
+    },
+    {
+      "id": "cluster-label",
+      "type": "symbol",
+      "source": "cluster",
+      "source-layer": "address_clusters",
+      "minzoom": 15,
+      "layout": {
+        "symbol-placement": "point",
+        "symbol-sort-key": ["-", ["get", "cnt"]],
+        "text-field": ["get", "label"],
+        "text-font": ["NotoSansCJKtc-Regular"],
+        "text-size": ["interpolate", ["linear"], ["zoom"], 15, 11, 19, 15],
+        "text-max-width": 8,
+        "text-padding": 1
+      },
+      "paint": {
+        "text-color": "#ffffff",
+        "text-halo-color": "#80004f",
+        "text-halo-width": 1.5
+      }
+    }
+  ]
+}
