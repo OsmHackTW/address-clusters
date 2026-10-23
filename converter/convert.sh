@@ -1,9 +1,6 @@
 #!/bin/bash
-
-until psql $POSTGRES_URL -c "select 1" > /dev/null 2>&1; do
-  echo "Wait until Postgres is ready..."
-  sleep 5
-done
+set -e
 
 echo "Running ogr2ogr to generate PMTiles..."
+rm -f /source/cluster.pmtiles
 ogr2ogr -dsco MINZOOM=10 -dsco MAXZOOM=15 -F "PMTiles" /source/cluster.pmtiles $POSTGRES_URL "address_clusters"

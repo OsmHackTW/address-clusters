@@ -2,29 +2,32 @@ services:
   importer:
     build: importer/
     volumes:
-      - ./source:/source:r
+      - ./source:/source:ro
     depends_on:
-      - postgis
+      postgis:
+        condition: service_healthy
     profiles:
       - tools
     environment:
       POSTGRES_URL: postgresql://addr:addr@postgis:5432/addr
+      PBF: ${PBF:-taiwan-latest.osm.pbf}
     command: /work/go.sh
   converter:
     build: converter/
     volumes:
-      - ./source:/source:r
+      - ./source:/source:rw
     depends_on:
-      - postgis
+      postgis:
+        condition: service_healthy
     profiles:
       - tools
     environment:
       POSTGRES_URL: postgresql://addr:addr@postgis:5432/addr
     command: /work/convert.sh
   postgis:
-    image: postgis/postgis:17-3.5
+    image: postgis/postgis:18-3.6
     volumes:
-      - db:/var/lib/postgresql/data:rw
+      - pgdata:/var/lib/postgresql:rw
     environment:
       POSTGRES_USER: addr
       POSTGRES_PASSWORD: addr
@@ -34,7 +37,11 @@ services:
       -c work_mem=20MB
       -c maintenance_work_mem=512MB
       -c autovacuum_work_mem=128MB
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "addr", "-d", "addr"]
+      interval: 5s
+      retries: 20
     profiles:
       - tools
 volumes:
-  db:
+  pgdata:

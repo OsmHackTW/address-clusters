@@ -1,18 +1,14 @@
 #!/bin/bash
+set -e
 
-if [ ! -f "/source/taiwan-latest.osm.pbf" ]; then
-  echo "ERROR: taiwan-latest.osm.pbf not found"
+if [ ! -f "/source/$PBF" ]; then
+  echo "ERROR: $PBF not found"
   echo "Please download it from Geofabrik and put it in source/."
   exit 1
 fi
 
-until psql $POSTGRES_URL -c "select 1" > /dev/null 2>&1; do
-  echo "Wait until Postgres is ready..."
-  sleep 5
-done
-
-echo "Running osm2pgsql..."
-osm2pgsql -d $POSTGRES_URL -O flex -S addresses.lua /source/taiwan-latest.osm.pbf
+echo "Running osm2pgsql on $PBF..."
+osm2pgsql -d $POSTGRES_URL -O flex -S addresses.lua "/source/$PBF"
 
 echo "Generating Clusters..."
-psql $POSTGRES_URL -f cluster.sql
+psql $POSTGRES_URL -v ON_ERROR_STOP=1 -f cluster.sql
