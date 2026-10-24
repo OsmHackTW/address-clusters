@@ -17,10 +17,20 @@ docker compose run importer
 docker compose run converter
 ```
 
-As of October 2026 (`taiwan-261022.osm.pbf`), the `importer` took about 140 seconds and `converter` took about 95 seconds
+As of October 2026 (`taiwan-261022.osm.pbf`), the `importer` took about 190 seconds and `converter` took about 105 seconds
 in my Ryzen 5 5600G machine running WSL 2.
-The `addresses` table will have 9,711,502 entries, generating 202,861 address clusters;
-the PMTiles generated is sized 38MB.
+The `addresses` table will have 9,711,502 entries on 5,184,341 distinct positions, generating 235,879 address clusters;
+the PMTiles generated is sized 45MB.
+
+### How clusters are made
+
+* Addresses are grouped by city, district and `addr:street` (or `addr:place` when there is no street).
+  Spelling variants like 台/臺 are folded together.
+* Floors and units on the same position are counted once.
+* Positions within 200m are clustered with DBSCAN. A lone position is kept as a point,
+  unless the same address also exists elsewhere, which makes it a likely stray.
+* Clusters longer than 1.5km are split into ~1km pieces with k-means,
+  and drawn as concave hulls.
 
 ### Serve raster tiles
 
