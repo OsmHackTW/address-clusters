@@ -3,6 +3,8 @@ This is a work in progress.
 Currently address importing, clustering, PMTiles generation and
 raster tile rendering with Tileserver GL (for map editors like JOSM) are done.
 
+![Address clusters around Da'an, Taipei, over OpenStreetMap](screenshot.jpg)
+
 ### Produce PMTiles
 
 Docker (with Docker Compose) is required.
