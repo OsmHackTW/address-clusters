@@ -9,15 +9,16 @@ ADD --checksum=sha256:dce08bd4fd91aa8aa76ed8fea4b694c2dfb8550f67871e326843212ddb
     https://github.com/notofonts/noto-cjk/raw/Sans2.004/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf /src/
 RUN build_pbf_glyphs /src /fonts
 
-# PMTiles to bundle into the image, empty by default.
-# The release workflow passes cluster.pmtiles with `--build-context data=<dir>`;
-# otherwise mount a directory containing cluster.pmtiles at /source.
-FROM scratch AS data
-
-FROM maptiler/tileserver-gl:v5.6.0
+FROM maptiler/tileserver-gl:v5.6.0 AS base
 COPY --from=glyphs /fonts /tileserver/fonts
 COPY config.json /tileserver/
 COPY styles /tileserver/styles
-# Last, so a data update only changes this layer
-COPY --from=data . /source/
 CMD ["--config", "/tileserver/config.json"]
+
+# With cluster.pmtiles bundled, for the release workflow:
+# docker build --target bundled --build-context data=<dir with cluster.pmtiles> .
+FROM base AS bundled
+COPY --from=data cluster.pmtiles /source/
+
+# The default has no data: mount a directory containing cluster.pmtiles at /source.
+FROM base
