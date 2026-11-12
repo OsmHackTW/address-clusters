@@ -1,0 +1,108 @@
+name: Build tiles
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: build-tiles
+
+jobs:
+  tiles:
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.extract.outputs.tag }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download OSM extract
+        id: extract
+        shell: python
+        run: |
+          import hashlib, os, re, shutil, time, urllib.request
+
+          def fetch(url):
+              request = urllib.request.Request(url, headers={"User-Agent": "address-clusters (GitHub Actions)"})
+              for attempt in range(3):
+                  try:
+                      return urllib.request.urlopen(request, timeout=60)
+                  except OSError:
+                      if attempt == 2:
+                          raise
+                      time.sleep(30)
+
+          # taiwan-latest.osm.pbf redirects to the dated taiwan-YYMMDD.osm.pbf
+          with fetch("https://download.geofabrik.de/asia/taiwan-latest.osm.pbf") as response:
+              url = response.geturl()
+              file = url.rsplit("/", 1)[1]
+              match = re.fullmatch(r"taiwan-(\d\d)(\d\d)(\d\d)\.osm\.pbf", file)
+              if not match:
+                  raise SystemExit(f"Unexpected extract URL: {url}")
+              tag = "20{}-{}-{}".format(*match.groups())
+              print(f"Downloading {file} ({tag})")
+              with open(f"source/{file}", "wb") as out:
+                  shutil.copyfileobj(response, out)
+
+          with fetch(f"{url}.md5") as response:
+              expected = response.read().decode().split()[0]
+          with open(f"source/{file}", "rb") as f:
+              actual = hashlib.file_digest(f, "md5").hexdigest()
+          if actual != expected:
+              raise SystemExit(f"MD5 mismatch: expected {expected}, got {actual}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              print(f"file={file}", file=out)
+              print(f"tag={tag}", file=out)
+
+      - name: Import addresses
+        run: docker compose run --rm importer
+        env:
+          PBF: ${{ steps.extract.outputs.file }}
+
+      - name: Generate PMTiles
+        run: docker compose run --rm converter
+
+      - name: Publish release
+        shell: python
+        env:
+          TAG: ${{ steps.extract.outputs.tag }}
+          FILE: ${{ steps.extract.outputs.file }}
+        run: |
+          import os, subprocess
+
+          tag, file = os.environ["TAG"], os.environ["FILE"]
+          image = "ghcr.io/" + os.environ["GITHUB_REPOSITORY"].lower()
+
+          def gh(*args, **kwargs):
+              return subprocess.run(["gh", "release", *args], **kwargs)
+
+          if gh("view", tag, capture_output=True).returncode == 0:
+              gh("upload", tag, "source/cluster.pmtiles", "--clobber", check=True)
+          else:
+              notes = f"""\
+          Address clusters generated from the Geofabrik extract `{file}`.
+
+          Serve it as raster tiles at `http://localhost:8886/`:
+
+          ```sh
+          docker run --rm -p 127.0.0.1:8886:8080 {image}:{tag}
+          ```
+
+          Map data © OpenStreetMap contributors, available under the
+          [Open Database License](https://www.openstreetmap.org/copyright).
+          """
+              gh("create", tag, "source/cluster.pmtiles", "--latest",
+                 "--title", f"Address clusters {tag}", "--notes", notes, check=True)
+
+  image:
+    needs: tiles
+    uses: ./.github/workflows/tileserver-image.yml
+    with:
+      tag: ${{ needs.tiles.outputs.tag }}

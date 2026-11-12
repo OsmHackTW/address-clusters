@@ -6,8 +6,6 @@ services:
     depends_on:
       postgis:
         condition: service_healthy
-    profiles:
-      - tools
     environment:
       POSTGRES_URL: postgresql://addr:addr@postgis:5432/addr
       PBF: ${PBF:-taiwan-latest.osm.pbf}
@@ -19,17 +17,9 @@ services:
     depends_on:
       postgis:
         condition: service_healthy
-    profiles:
-      - tools
     environment:
       POSTGRES_URL: postgresql://addr:addr@postgis:5432/addr
     command: /work/convert.sh
-  tileserver:
-    build: tileserver/
-    volumes:
-      - ./source:/source:ro
-    ports:
-      - 127.0.0.1:8886:8080
   postgis:
     image: postgis/postgis:18-3.6
     volumes:
@@ -47,7 +37,5 @@ services:
       test: ["CMD", "pg_isready", "-U", "addr", "-d", "addr"]
       interval: 5s
       retries: 20
-    profiles:
-      - tools
 volumes:
   pgdata:

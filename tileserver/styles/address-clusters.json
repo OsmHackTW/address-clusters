@@ -4,7 +4,8 @@
   "sources": {
     "cluster": {
       "type": "vector",
-      "url": "pmtiles://{cluster}"
+      "url": "pmtiles://{cluster}",
+      "attribution": "<a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">© OpenStreetMap contributors</a>"
     }
   },
   "glyphs": "{fontstack}/{range}.pbf",
